@@ -5,35 +5,37 @@ class BankAccount:
 
     def __init__(self, amount=1_000):
         self.amount = amount
+        self.lock = threading.Lock()
 
     def deposit(self, amount):
-        self.amount += amount
+        with self.lock:
+            self.amount += amount
+            print(f'Deposited {amount}, new balance is {account.amount}')
 
     def withdraw(self, amount):
-        self.amount -= amount
+        with self.lock:
+            self.amount -= amount
+            print(f'Withdrew {amount}, new balance is {account.amount}')
 
 
 def deposit_task(account, amount):
     for _ in range(5):
-        with threading.Lock():
-            account.deposit(amount)
-            print(f'Deposited {amount}, new balance is {account.amount}')
+        account.deposit(amount)
 
 
 def withdraw_task(account, amount):
     for _ in range(5):
-        with threading.Lock():
-            account.withdraw(amount)
-            print(f'Withdrew {amount}, new balance is {account.amount}')
+        account.withdraw(amount)
 
 
-account = BankAccount()
+if __name__ == '__main__':
+    account = BankAccount()
 
-deposit_thread = threading.Thread(target=deposit_task, args=(account, 100))
-withdraw_thread = threading.Thread(target=withdraw_task, args=(account, 150))
+    deposit_thread = threading.Thread(target=deposit_task, args=(account, 100))
+    withdraw_thread = threading.Thread(target=withdraw_task, args=(account, 150))
 
-deposit_thread.start()
-withdraw_thread.start()
+    deposit_thread.start()
+    withdraw_thread.start()
 
-deposit_thread.join()
-withdraw_thread.join()
+    deposit_thread.join()
+    withdraw_thread.join()
